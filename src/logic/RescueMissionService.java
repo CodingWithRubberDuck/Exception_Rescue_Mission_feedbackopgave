@@ -1,7 +1,16 @@
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Random;
+package logic;
+
+import dal.ExceptionLogger;
+import exceptions.CriticalStatusException;
+import exceptions.InvalidActionException;
+import exceptions.InvalidTradeException;
+import exceptions.NotUsableException;
+import model.DangerEvent;
+import model.Event;
+import model.OpportunityEvent;
+import model.SpaceShip;
+
+import java.util.*;
 
 //Responsible for doing logic-checks and throws exceptions if not
 public class RescueMissionService {
@@ -9,6 +18,7 @@ public class RescueMissionService {
     private SpaceShip ship = null;
     private List<DangerEvent> dangerEvents;
     private List<OpportunityEvent> opportunityEvents;
+    private List<String> eventLogs;
 
     private final Random random = new Random();
 
@@ -16,6 +26,13 @@ public class RescueMissionService {
         this.logger = logger;
     }
 
+    private void addEventLog(String message){
+        eventLogs.add(message);
+    }
+
+    public List<String> getEventLogs(){
+        return eventLogs;
+    }
 
     public void createShip(String captainName, String shipName){
         final int FUEL_START = 100;
@@ -35,6 +52,8 @@ public class RescueMissionService {
             ship.setCaptainName(captainName);
             ship.setShipName(shipName);
         }
+        //EVENT LOG
+        addEventLog("- Start: Kaptajn " + captainName + " på " + shipName);
     }
 
     public SpaceShip getShip(){
@@ -43,8 +62,35 @@ public class RescueMissionService {
 
 
     public void resetEventLists(){
-        dangerEvents = Arrays.asList(DangerEvent.values());
-        opportunityEvents = Arrays.asList(OpportunityEvent.values());
+        List<DangerEvent> dangerList = Arrays.asList(DangerEvent.values());
+        dangerEvents = new ArrayList<>(dangerList);
+        List<OpportunityEvent> opportunityList = Arrays.asList(OpportunityEvent.values());
+        opportunityEvents = new ArrayList<>(opportunityList);
+        if (eventLogs == null){
+            eventLogs = new ArrayList<>();
+        } else {
+            eventLogs.clear();
+        }
+        eventLogs.add("Event LOG");
+    }
+
+
+
+
+
+    public void checkShipStatus(int round){
+        if (ship.getFuel() < 10){
+            //Event Log
+            addEventLog("- Event " + round + ": Rumskibet er løbet tør for brændstof, og spillet er tabt");
+            throw new CriticalStatusException("FEJL: Du har et kritsk lavt niveau af brændstof og bliver nødt til at stoppe din rejse. " +
+                    "\nDu har tabt spillet");
+        }
+        if  (ship.getIntegrity() < 20){
+            //Event Log
+            addEventLog("- Event " + round + ": Rumskibet er for smadret til at fortsætte, og spillet er tabt");
+            throw new CriticalStatusException("FEJL: Du har et kritisk lavt niveau af integritet og bliver nødt til at stoppe din rejse." +
+                    "\nDu har tabt spillet");
+        }
     }
 
 
@@ -131,19 +177,21 @@ public class RescueMissionService {
     }
 
 
-    public void useRepairKit(){
+    public void useRepairKit(int round){
         if (ship.getIsRepairKitUsed()){
             throw new NotUsableException("Fejl: Du har allerede brugt dit repair kit");
         } else {
             final int repairKitIncrease = 20;
             ship.increaseIntegrity(repairKitIncrease);
             ship.setRepairKitUsed(true);
+            //EVENT LOG
+            addEventLog("- Event " + round + ": Repair kit brugt, integritet +" + repairKitIncrease);
         }
     }
 
 
 
-    public int[] calculatingSpaceStorm(int choice) {
+    public int[] calculatingSpaceStorm(int choice, int round) {
         //Through storm
         final int FLY_THROUGH = 1;
         //Other way
@@ -158,10 +206,15 @@ public class RescueMissionService {
             int shieldProctection = ship.getShieldProtectionAmount();
 
             if (shieldProctection>0){
-                ship.loseIntegrity(damage-ship.getShieldProtectionAmount());
+                int actualDamage = damage-ship.getShieldProtectionAmount();
+                ship.loseIntegrity(actualDamage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Flyver igennem storm, skade +" + actualDamage);
                 return new int[]{damage, ship.getShieldLevel(), shieldProctection, FLY_FUEL_COST};
             } else {
                 ship.loseIntegrity(damage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Flyver igennem storm, skade +" + damage + ", brændstof " + FLY_FUEL_COST);
                 return new int[]{damage, FLY_FUEL_COST};
             }
         }
@@ -174,10 +227,15 @@ public class RescueMissionService {
             int shieldProctection = ship.getShieldProtectionAmount();
 
             if (shieldProctection>0){
-                ship.loseIntegrity(damage-ship.getShieldProtectionAmount());
+                int actualDamage = damage-ship.getShieldProtectionAmount();
+                ship.loseIntegrity(actualDamage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Finder en omvej, skade +" + actualDamage + ", brændstof " + OTHER_FUEL_COST);
                 return new int[]{damage, ship.getShieldLevel(), shieldProctection, OTHER_FUEL_COST};
             } else {
                 ship.loseIntegrity(damage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Finder en omvej, skade +" + damage + ", brændstof " + OTHER_FUEL_COST);
                 return new int[]{damage, OTHER_FUEL_COST};
             }
         }
@@ -186,7 +244,7 @@ public class RescueMissionService {
     }
 
 
-    public int[] calculatingHostileShip(int choice){
+    public int[] calculatingHostileShip(int choice, int round){
         //Runaway
         final int FLY_AWAY = 1;
         //Scare away
@@ -204,10 +262,15 @@ public class RescueMissionService {
             int shieldProctection = ship.getShieldProtectionAmount();
 
             if (shieldProctection>0){
-                ship.loseIntegrity(damage-ship.getShieldProtectionAmount());
+                int actualDamage = damage-ship.getShieldProtectionAmount();
+                ship.loseIntegrity(actualDamage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Flygter fra skibet, skade +" + actualDamage + ", brændstof " + fuelUsed);
                 return new int[]{damage, ship.getShieldLevel(), shieldProctection, fuelUsed};
             } else {
                 ship.loseIntegrity(damage);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Flygter fra skibet, skade +" + damage + ", brændstof " + fuelUsed);
                 return new int[]{damage, fuelUsed};
             }
         }
@@ -226,10 +289,15 @@ public class RescueMissionService {
                 int shieldProctection = ship.getShieldProtectionAmount();
 
                 if (shieldProctection>0){
-                    ship.loseIntegrity(damage-ship.getShieldProtectionAmount());
+                    int actualDamage = damage-ship.getShieldProtectionAmount();
+                    ship.loseIntegrity(actualDamage);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Succesfuldt skræmt det fjendtlige rumskib væk, skade +" + actualDamage + ", brændstof " + FUEL_USED);
                     return new int[]{damage, ship.getShieldLevel(), shieldProctection, FUEL_USED};
                 } else {
                     ship.loseIntegrity(damage);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Succesfuldt skræmt det fjendtlige rumskib væk, skade +" + damage + ", brændstof " + FUEL_USED);
                     return new int[]{damage, FUEL_USED};
                 }
             } else {
@@ -242,10 +310,15 @@ public class RescueMissionService {
                 int shieldProctection = ship.getShieldProtectionAmount();
 
                 if (shieldProctection>0){
-                    ship.loseIntegrity(damage-ship.getShieldProtectionAmount());
+                    int actualDamage = damage-ship.getShieldProtectionAmount();
+                    ship.loseIntegrity(actualDamage);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Fejlet i at skræmme fjendtligt rumskib væk, skade +" + actualDamage + ", brændstof " + FUEL_USED);
                     return new int[]{damage, ship.getShieldLevel(), shieldProctection, FUEL_USED};
                 } else {
                     ship.loseIntegrity(damage);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Fejlet i at skræmme fjendtligt rumskib væk, skade +" + damage + ", brændstof " + FUEL_USED);
                     return new int[]{damage, FUEL_USED};
                 }
             }
@@ -254,8 +327,9 @@ public class RescueMissionService {
         //LOGGER
     }
 
-    public boolean calculatingMotorMalfunction(int choice, int chancesLeft) {
+    public boolean calculatingMotorMalfunction(int choice, int chancesLeft, int round) {
         final int FINAL_CHANCE = 1;
+        final int MOTOR_FAILURE_DAMAGE = 15;
         //Through storm
         final int NO_PARTS = 1;
         //Other way
@@ -268,11 +342,18 @@ public class RescueMissionService {
 
             int outcomeDecider = random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE+1);
             if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER){
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Genstart af motor lykkedes");
                 return true;
             } else {
                 if (chancesLeft <= FINAL_CHANCE){
+                    //Event Log
+                    addEventLog("- Event " + round + ": Rumskibets motor er permanent ødelagt, og spillet er tabt");
                     throw new CriticalStatusException("FEJL: Din motor er permanent ødelagt og du har tabt spillet");
                 }
+                ship.loseIntegrity(MOTOR_FAILURE_DAMAGE);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Genstart af motor fejlede (forsøg tilbage " + (chancesLeft-1) + ")");
                 return false;
             }
 
@@ -287,11 +368,18 @@ public class RescueMissionService {
                 ship.spentSpareParts(SPARE_PARTS_COST);
                 int outcomeDecider = random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE + 1);
                 if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER) {
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Genstart af motor med reservedele lykkedes");
                     return true;
                 } else {
                     if (chancesLeft <= FINAL_CHANCE){
+                        //Event Log
+                        addEventLog("- Event " + round + ": Rumskibets motor er permanent ødelagt, og spillet er tabt");
                         throw new CriticalStatusException("FEJL: Din motor er permanent ødelagt og du har tabt spillet");
                     }
+                    ship.loseIntegrity(MOTOR_FAILURE_DAMAGE);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Genstart af motor fejlede (forsøg tilbage " + (chancesLeft-1) + ")");
                     return false;
                 }
             } else {
@@ -302,14 +390,55 @@ public class RescueMissionService {
         //LOGGER
     }
 
-    public void motorMalfunctionTakingDamage(){
-        final int motorFailureDamage = 15;
-        ship.loseIntegrity(15);
+
+    public int mysteriousTraderMoveOn(int round){
+        final int PASSIVE_FUEL_COST = 5;
+        ship.useFuel(PASSIVE_FUEL_COST);
+        return PASSIVE_FUEL_COST;
     }
 
 
-    public void useMysteriousTraderFuelUsage(int fuelCost){
-        ship.useFuel(fuelCost);
+
+
+    public int[] mysteriousTraderTradeForFuel(String answer, int round){
+        final int TRADE_RATIO = 5;
+        try{
+            int choice = Integer.parseInt(answer);
+            if (choice > 0){
+                if (choice <= ship.getSpareParts()){
+                    int fuelGained = choice * TRADE_RATIO;
+                    ship.increaseFuel(fuelGained);
+                    ship.spentSpareParts(choice);
+                    //EVENT LOG
+                    addEventLog("- Event " + round + ": Handel " + choice + " reservedele -> +" + fuelGained + " brændstof");
+                    return new int[]{choice, TRADE_RATIO*choice};
+                } else {
+                    throw new InvalidTradeException("Fejl: Du har ikke nok reservedele");
+                    //LOGGER
+                }
+            } else {
+                throw new IllegalArgumentException("Fejl: Indtast et positivt tal");
+                //LOGGER
+            }
+        } catch (NumberFormatException nfe){
+            throw new IllegalArgumentException("Fejl: Indtast et tal");
+            //LOGGER
+        }
+    }
+
+    public int mysteriousTraderTradeForShield(int round){
+        final int UPGRADE_COST = 4;
+        final int INCREASE_OF_SHIELD = 1;
+
+        if (ship.getSpareParts() >= UPGRADE_COST){
+            ship.spentSpareParts(UPGRADE_COST);
+            ship.increaseShieldLevelBy(INCREASE_OF_SHIELD);
+            //EVENT LOG
+            addEventLog("- Event " + round + ": Handel " + UPGRADE_COST + " reservedele -> opgradet shield med " + INCREASE_OF_SHIELD + " level");
+            return ship.getShieldLevel();
+        } else {
+            throw new InvalidTradeException("Fejl: Du har ikke nok reservedele");
+        }
     }
 
 
@@ -317,7 +446,7 @@ public class RescueMissionService {
 
 
 
-    public int[] calculatingScavengeFacility(int choice){
+    public int[] calculatingScavengeFacility(int choice, int round){
         //Look for spareParts
         final int PARTS_LOOK = 1;
         //Look for upgrade
@@ -333,6 +462,8 @@ public class RescueMissionService {
             ship.useFuel(PARTS_FUEL_COST);
             int partsGained = random.nextInt(PARTS_MIN_GAIN, PARTS_MAX_GAIN + 1);
 
+            //EVENT LOG
+            addEventLog("- Event " + round + ": Forladt fabrik søg efter reservedele, +" + partsGained + " reservedele");
             return new int[]{partsGained, PARTS_FUEL_COST};
         }
         if (choice == SHIELD_LOOK) {
@@ -346,14 +477,20 @@ public class RescueMissionService {
             int outcomeDecider = random.nextInt(SHIELD_LOWEST_PERCENTAGE,SHIELD_HIGHEST_PERCENTAGE+1);
             if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER){
                 ship.increaseShieldLevelBy(INCREASE_SHIELD_BY);
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Forladt fabrik søg efter shield opgradering, fundet +" + INCREASE_SHIELD_BY + "shield level");
                 return new int[]{ship.getShieldLevel(), ship.getShieldProtectionAmount(), SHIELD_FUEL_COST};
             } else {
+                //EVENT LOG
+                addEventLog("- Event " + round + ": Forladt fabrik søg efter shield opgradering, fundet +" + INCREASE_SHIELD_BY + "shield level");
                 return new int[]{SHIELD_FUEL_COST};
             }
         }
         if (choice == PASS_BY){
             final int PASS_FUEL_COST = 5;
             ship.useFuel(PASS_FUEL_COST);
+            //EVENT LOG
+            addEventLog("- Event " + round + ": Forladt fabrik smutter bare forbi, -" + PASS_FUEL_COST + " brændstof");
             return new int[]{PASS_FUEL_COST};
         }
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");

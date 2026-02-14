@@ -1,3 +1,5 @@
+package model;
+
 public class SpaceShip {
     private int fuel;
     private int integrity;
@@ -69,12 +71,16 @@ public class SpaceShip {
 
     public int getShieldProtectionAmount(){
         final int PROCTECTION_PER_SHIELD_LEVEL = 5;
-        return shieldLevel * 5;
+        return shieldLevel * PROCTECTION_PER_SHIELD_LEVEL;
     }
 
 
     public void useFuel(int amount){
         this.fuel -= amount;
+    }
+
+    public void increaseFuel(int amount){
+        this.fuel += amount;
     }
 
     public void loseIntegrity(int amount){

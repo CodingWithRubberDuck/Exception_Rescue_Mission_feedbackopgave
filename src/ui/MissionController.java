@@ -1,3 +1,11 @@
+package ui;
+
+import logic.RescueMissionService;
+import model.Event;
+import model.SpaceShip;
+
+import java.util.List;
+
 //Doesn't display anything but controls what gets displayed,
 // and governs simple logic or formatting
 public class MissionController {
@@ -6,6 +14,11 @@ public class MissionController {
     public MissionController(RescueMissionService service){
         this.service = service;
     }
+
+    public List<String> gettingEventLogs(){
+        return service.getEventLogs();
+    }
+
 
     public String shutdownText(){
         return "\nHåber du har nydt spillet :D";
@@ -21,6 +34,10 @@ public class MissionController {
 
     public boolean checkPlayAnswer(String answer){
         return service.handlePlayAnswer(answer.trim());
+    }
+
+    public void checkingShipStatus(int round){
+        service.checkShipStatus(round);
     }
 
 
@@ -86,8 +103,8 @@ public class MissionController {
                 "\n------------------------------------------";
     }
 
-    public void tryUseRepairKit(){
-        service.useRepairKit();
+    public void tryUseRepairKit(int round){
+        service.useRepairKit(round);
     }
 
     public String useRepairKitSuccess(){
@@ -130,8 +147,8 @@ public class MissionController {
     }
 
 
-    public int[] spaceStormCalculations(int choice){
-        return service.calculatingSpaceStorm(choice);
+    public int[] spaceStormCalculations(int choice, int round){
+        return service.calculatingSpaceStorm(choice, round);
     }
 
     public String spaceStormFlyText(){
@@ -188,8 +205,8 @@ public class MissionController {
                 "\n4) Brug repair kit";
     }
 
-    public int[] hostileShipCalculations(int choice){
-        return service.calculatingHostileShip(choice);
+    public int[] hostileShipCalculations(int choice, int round){
+        return service.calculatingHostileShip(choice, round);
     }
 
     public String hostileShipFlightText(){
@@ -249,16 +266,21 @@ public class MissionController {
         return  "\nEVENT " + roundNumber + " - MOTOR-PROBLEMER" +
                 "\nMotoren fejler pludseligt, du anskuer at du har i alt 2 forsøg til at fikse problemet" +
                 "\nDu udleder ydermere at et mislykket forsøg vil gøre skade på rumskibet" +
-                "\n" +
-                "\nVælg handling:" +
+                "\n";
+
+    }
+
+    public String motorMalfunctionOptionsText(){
+        return  "\nVælg handling:" +
                 "\n1) Prøv at fikse uden brug af reservedele (middelmådig chance for success)" +
                 "\n2) Brug reservedele til at fikse motoren (høj chance for succes, men bruger 2 reservedele)" +
                 "\n3) Se Status" +
                 "\n4) Brug repair kit";
     }
 
-    public boolean motorMalfunctionCalculations(int choice, int chancesLeft){
-        return service.calculatingMotorMalfunction(choice, chancesLeft);
+
+    public boolean motorMalfunctionCalculations(int choice, int chancesLeft, int round){
+        return service.calculatingMotorMalfunction(choice, chancesLeft, round);
     }
 
     public String motorMalfunctionSuccessText(){
@@ -273,9 +295,7 @@ public class MissionController {
                 "\nIntegritet -15";
     }
 
-    public void motorMalfunctionFailDamage(){
-        service.motorMalfunctionTakingDamage();
-    }
+
 
 
     //Mysterious trader
@@ -283,8 +303,12 @@ public class MissionController {
     public String mysteriousTraderIntroText(int roundNumber){
         return  "\nEVENT " + roundNumber + " - MYSTISK KØBMAND" +
                 "\nEt rumvæsen tilbyder handel og opgraderinger" +
-                "\n" +
-                "\nVælg handling:" +
+                "\n";
+
+    }
+
+    public String mysteriousTraderOptionsText(){
+       return    "\nVælg handling:" +
                 "\n1) Byt reservedele for brændstof (ratio 1/1)" +
                 "\n2) Opgrader shield level med +1 (koster 4 reservedele)" +
                 "\n3) Tag videre (tryk denne mulighed, når du er færdig)" +
@@ -292,8 +316,8 @@ public class MissionController {
                 "\n5) Brug repair kit";
     }
 
-    public void mysteriousTraderFuelUsage(int fuelCost){
-        service.useMysteriousTraderFuelUsage(fuelCost);
+    public int mysteriousTraderPassOn(int round){
+        return service.mysteriousTraderMoveOn(round);
     }
 
 
@@ -304,6 +328,23 @@ public class MissionController {
                 "\nBrændstof -" + fuelCost;
     }
 
+    public int[] checkMysteriousTraderTradeFuel(String answer, int round){
+        return service.mysteriousTraderTradeForFuel(answer, round);
+    }
+
+    public String mysteriousTraderFuelTradeText(int[] trade){
+        int spentParts = trade[0];
+        int gainedFuel = trade[1];
+        return "\n" + spentParts + " reservedele -> +" + gainedFuel + " brændstof";
+    }
+
+    public int checkMysteriousTraderTradeShield(int round){
+        return service.mysteriousTraderTradeForShield(round);
+    }
+
+    public String mysteriousTraderShieldTradeText(int newShieldLevel){
+        return "\nShield level " + newShieldLevel + " aktiveret";
+    }
 
 
 
@@ -322,8 +363,8 @@ public class MissionController {
                 "\n5) Brug repair kit";
     }
 
-    public int[] scavengeFacilityCalculations(int choice){
-        return service.calculatingScavengeFacility(choice);
+    public int[] scavengeFacilityCalculations(int choice, int round){
+        return service.calculatingScavengeFacility(choice, round);
     }
 
     public String scavengeFacilitySparePartsText(){
@@ -372,6 +413,30 @@ public class MissionController {
         int fuelCost = changes[0];
 
         return  "\nBrændstof -" + fuelCost;
+    }
+
+
+
+    public String winText(){
+        return  "\n" +
+                "\n---------------------------------------------------------------" +
+                "\n" +
+                "\nMISSION FULDFØRT" +
+                "\nDu overlevede rejsen gennem galaksen" +
+                "\n" +
+                "\n---------------------------------------------------------------" +
+                "\n";
+    }
+
+    public String loseText(){
+        return  "\n" +
+                "\n---------------------------------------------------------------" +
+                "\n" +
+                "\nMISSION FEJLET" +
+                "\nDu har desværre mødt din ende" +
+                "\n" +
+                "\n---------------------------------------------------------------" +
+                "\n";
     }
 
 
