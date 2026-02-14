@@ -1,9 +1,6 @@
 package ui;
 
-import exceptions.CriticalStatusException;
-import exceptions.InvalidActionException;
-import exceptions.InvalidTradeException;
-import exceptions.NotUsableException;
+import exceptions.*;
 import model.DangerEvent;
 import model.Event;
 import model.OpportunityEvent;
@@ -20,10 +17,19 @@ public class UIDisplay {
         this.controller = controller;
     }
 
+    public void configureLoggerFilePath(){
+        controller.configureLoggerFilePath();
+    }
+
+    public void moveExceptionsAlongForLogger(Throwable e){
+        controller.moveExceptionsAlongForLogger(e);
+    }
+
     public void launch(){
         Scanner input = new Scanner(System.in);
         boolean programRunning = true;
         boolean answer;
+        configureLoggerFilePath();
         while (programRunning) {
             System.out.print(controller.askToPlayText());
             try {
@@ -35,8 +41,8 @@ public class UIDisplay {
                     System.out.println(controller.shutdownText());
                 }
             } catch (IllegalArgumentException iae) {
+                moveExceptionsAlongForLogger(iae);
                 System.out.println(iae.getMessage());
-                System.out.print(controller.newResponseText());
             }
         }
     }
@@ -58,6 +64,7 @@ public class UIDisplay {
                 captainName = input.nextLine();
                 answerCaptain = controller.captainNameAnswer(captainName);
             } catch (IllegalArgumentException iae){
+                moveExceptionsAlongForLogger(iae);
                 System.out.println(iae.getMessage());
                 System.out.print(controller.newResponseText());
             }
@@ -70,6 +77,7 @@ public class UIDisplay {
                 shipName = input.nextLine();
                 answerShip = controller.shipNameAnswer(shipName);
             } catch (IllegalArgumentException iae){
+                moveExceptionsAlongForLogger(iae);
                 System.out.println(iae.getMessage());
                 System.out.print(controller.newResponseText());
             }
@@ -87,6 +95,7 @@ public class UIDisplay {
                 controller.checkingShipStatus(round);
             }
         } catch (CriticalStatusException cse){
+            moveExceptionsAlongForLogger(cse);
             shipDestroyed = true;
             System.out.println(cse.getMessage());
         }
@@ -155,8 +164,8 @@ public class UIDisplay {
                         System.out.println(controller.spaceStormFlyText());
                         System.out.println(controller.spaceStormChanges(flyChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -167,8 +176,8 @@ public class UIDisplay {
                         System.out.println(controller.spaceStormOtherText());
                         System.out.println(controller.spaceStormChanges(otherChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -180,13 +189,13 @@ public class UIDisplay {
                         controller.tryUseRepairKit(round);
                         System.out.println(controller.useRepairKitSuccess());
                     } catch (NotUsableException nue){
+                        moveExceptionsAlongForLogger(nue);
                         System.out.println(nue.getMessage());
-                        //LOGGER
                     }
                     break;
                 default:
+                    moveExceptionsAlongForLogger(new UnknownSituationException(controller.unknownSituationText()));
                     System.out.println(controller.unknownSituationText());
-                    //LOGGER
                     break;
             }
         }
@@ -206,8 +215,8 @@ public class UIDisplay {
                         System.out.println(controller.hostileShipFlightText());
                         System.out.println(controller.hostileShipChanges(flightChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -219,8 +228,8 @@ public class UIDisplay {
                         System.out.println(controller.hostileShipScareText(damage));
                         System.out.println(controller.hostileShipChanges(scareChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
                 case 3:
@@ -231,13 +240,14 @@ public class UIDisplay {
                         controller.tryUseRepairKit(round);
                         System.out.println(controller.useRepairKitSuccess());
                     } catch (NotUsableException nue){
+                        moveExceptionsAlongForLogger(nue);
                         System.out.println(nue.getMessage());
-                        //LOGGER
+
                     }
                     break;
                 default:
+                    moveExceptionsAlongForLogger(new UnknownSituationException(controller.unknownSituationText()));
                     System.out.println(controller.unknownSituationText());
-                    //LOGGER
                     break;
             }
         }
@@ -263,8 +273,8 @@ public class UIDisplay {
                             System.out.println(controller.motorMalfunctionSuccessText());
                         }
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -279,8 +289,8 @@ public class UIDisplay {
                             System.out.println(controller.motorMalfunctionSuccessText());
                         }
                     } catch (InvalidActionException | IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -292,13 +302,13 @@ public class UIDisplay {
                         controller.tryUseRepairKit(round);
                         System.out.println(controller.useRepairKitSuccess());
                     } catch (NotUsableException nue){
+                        moveExceptionsAlongForLogger(nue);
                         System.out.println(nue.getMessage());
-                        //LOGGER
                     }
                     break;
                 default:
+                    moveExceptionsAlongForLogger(new UnknownSituationException(controller.unknownSituationText()));
                     System.out.println(controller.unknownSituationText());
-                    //LOGGER
                     break;
             }
         }
@@ -321,6 +331,7 @@ public class UIDisplay {
                             System.out.println(controller.mysteriousTraderOptionsText());
                             //NumberFormatException is a subclass of IllegalArgumentException
                         } catch (IllegalArgumentException | InvalidActionException iae){
+                            moveExceptionsAlongForLogger(iae);
                             System.out.println(iae.getMessage());
                         }
                     break;
@@ -332,6 +343,7 @@ public class UIDisplay {
                             System.out.println(controller.mysteriousTraderShieldTradeText(newShieldLevel));
                             System.out.println(controller.mysteriousTraderOptionsText());
                         } catch (InvalidTradeException iae){
+                            moveExceptionsAlongForLogger(iae);
                             System.out.println(iae.getMessage());
                         }
                     break;
@@ -350,14 +362,14 @@ public class UIDisplay {
                         controller.tryUseRepairKit(round);
                         System.out.println(controller.useRepairKitSuccess());
                     } catch (NotUsableException nue){
+                        moveExceptionsAlongForLogger(nue);
                         System.out.println(nue.getMessage());
-                        //LOGGER
                     }
                     break;
 
                 default:
+                    moveExceptionsAlongForLogger(new UnknownSituationException(controller.unknownSituationText()));
                     System.out.println(controller.unknownSituationText());
-                    //LOGGER
                     break;
             }
         }
@@ -377,8 +389,8 @@ public class UIDisplay {
                         System.out.println(controller.scavengeFacilitySparePartsText());
                         System.out.println(controller.scavengeFacilityPartsChangesText(sparePartsChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -389,8 +401,8 @@ public class UIDisplay {
                         System.out.println(controller.scavengeFacilityShieldText());
                         System.out.println(controller.scavengeFacilityShieldChangesText(shieldChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
 
                     break;
@@ -402,8 +414,8 @@ public class UIDisplay {
                         System.out.println(controller.scavengeFacilityPassText());
                         System.out.println(controller.scavengeFacilityPassChangesText(passChanges));
                     } catch (IllegalArgumentException iae){
+                        moveExceptionsAlongForLogger(iae);
                         System.out.println(iae.getMessage());
-                        //LOGGER
                     }
                     break;
 
@@ -415,14 +427,14 @@ public class UIDisplay {
                         controller.tryUseRepairKit(round);
                         System.out.println(controller.useRepairKitSuccess());
                     } catch (NotUsableException nue){
+                        moveExceptionsAlongForLogger(nue);
                         System.out.println(nue.getMessage());
-                        //LOGGER
                     }
                     break;
 
                 default:
+                    moveExceptionsAlongForLogger(new UnknownSituationException(controller.unknownSituationText()));
                     System.out.println(controller.unknownSituationText());
-                    //LOGGER
                     break;
             }
         }
@@ -437,8 +449,8 @@ public class UIDisplay {
                 choice = controller.verifyGeneralEventChoice(input.nextLine(), maxInputChoice);
                 return choice;
             } catch (IllegalArgumentException iae){
+                moveExceptionsAlongForLogger(iae);
                 System.out.println(iae.getMessage());
-                //LOGGER
             }
         }
     }

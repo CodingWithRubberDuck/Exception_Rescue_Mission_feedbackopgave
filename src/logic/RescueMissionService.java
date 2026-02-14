@@ -34,6 +34,15 @@ public class RescueMissionService {
         return eventLogs;
     }
 
+    public void configureLoggerFilePath(){
+        logger.setFilePath();
+    }
+
+    public void moveExceptionsAlongForLogger(Throwable e){
+        logger.logException(e);
+    }
+
+
     public void createShip(String captainName, String shipName){
         final int FUEL_START = 100;
         final int INTEGRITY_START = 100;
@@ -106,14 +115,12 @@ public class RescueMissionService {
                    return false;
                }
                throw new IllegalArgumentException("Fejl: Logisk fejl som ikke burde kunne ske, prøv igen");
-               //LOGGER
+
            } else {
                throw new IllegalArgumentException("Fejl: Indtast et tal fra " + YES_AND_MIN_OPTION + " til " + NO_AND_MAX_OPTION);
-               //LOGGER
            }
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("Fejl: Indtast et tal");
-            //LOGGER
         }
     }
 
@@ -122,11 +129,9 @@ public class RescueMissionService {
         final int MAX_LENGTH = 40;
         if (answer.length() > MAX_LENGTH){
             throw new IllegalArgumentException("Fejl: Kaptajnens navn kan maksimalt være " + MAX_LENGTH + " tegn");
-            //LOGGER
         }
         if (answer.trim().isBlank()){
             throw new IllegalArgumentException("Fejl: Kaptajnens navn kan ikke være tomt");
-            //LOGGER
         }
         return true;
     }
@@ -135,11 +140,9 @@ public class RescueMissionService {
         final int MAX_LENGTH = 40;
         if (answer.length() > MAX_LENGTH){
             throw new IllegalArgumentException("Fejl: Rumskibets navn kan maksimalt være " + MAX_LENGTH + " tegn");
-            //LOGGER
         }
         if (answer.trim().isBlank()){
             throw new IllegalArgumentException("Fejl: Rumskibets navn kan ikke være tomt");
-            //LOGGER
         }
         return true;
     }
@@ -168,11 +171,9 @@ public class RescueMissionService {
                 return choice;
             } else {
                 throw new IllegalArgumentException("Fejl: Indtast et tal fra " + MIN_OPTION + " til " + maxOptions);
-                //LOGGER
             }
         } catch (NumberFormatException nfe){
             throw new IllegalArgumentException("Fejl: Indtast et tal");
-            //LOGGER
         }
     }
 
@@ -240,7 +241,6 @@ public class RescueMissionService {
             }
         }
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");
-        //LOGGER
     }
 
 
@@ -321,7 +321,6 @@ public class RescueMissionService {
             }
         }
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");
-        //LOGGER
     }
 
     public boolean calculatingMotorMalfunction(int choice, int chancesLeft, int round) {
@@ -378,7 +377,6 @@ public class RescueMissionService {
             }
         }
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");
-        //LOGGER
     }
 
 
@@ -405,15 +403,12 @@ public class RescueMissionService {
                     return new int[]{choice, TRADE_RATIO*choice};
                 } else {
                     throw new InvalidTradeException("Fejl: Du har ikke nok reservedele");
-                    //LOGGER
                 }
             } else {
                 throw new IllegalArgumentException("Fejl: Indtast et positivt tal");
-                //LOGGER
             }
         } catch (NumberFormatException nfe){
             throw new IllegalArgumentException("Fejl: Indtast et tal");
-            //LOGGER
         }
     }
 
@@ -483,7 +478,6 @@ public class RescueMissionService {
             return new int[]{PASS_FUEL_COST};
         }
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");
-        //LOGGER
     }
 
 

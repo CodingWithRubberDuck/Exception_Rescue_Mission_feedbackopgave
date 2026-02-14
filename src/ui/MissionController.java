@@ -19,6 +19,14 @@ public class MissionController {
         return service.getEventLogs();
     }
 
+    public void configureLoggerFilePath(){
+        service.configureLoggerFilePath();
+    }
+
+    public void moveExceptionsAlongForLogger(Throwable e){
+        service.moveExceptionsAlongForLogger(e);
+    }
+
 
     public String shutdownText(){
         return "\nHåber du har nydt spillet :D";
