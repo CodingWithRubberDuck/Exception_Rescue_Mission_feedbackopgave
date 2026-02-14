@@ -275,12 +275,9 @@ public class RescueMissionService {
             }
         }
         if (choice == SCARE_AWAY){
-            final int LOWEST_PERCENTAGE = 1;
-            final int HIGHEST_PERCENTAGE = 100;
             final int GOOD_OUTCOME_EQUAL_OR_LOWER = 40;
-            int outcomeDecider = random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE + 1);
 
-            if (outcomeDecider >= GOOD_OUTCOME_EQUAL_OR_LOWER){
+            if (chanceChecker(GOOD_OUTCOME_EQUAL_OR_LOWER)){
                 final int GOOD_MIN_DAMAGE = 0;
                 final int GOOD_MAX_DAMAGE = 10;
                 final int FUEL_USED = 5;
@@ -336,12 +333,9 @@ public class RescueMissionService {
         final int WITH_PARTS = 2;
         //Logic
         if (choice == NO_PARTS) {
-            final int LOWEST_PERCENTAGE = 1;
-            final int HIGHEST_PERCENTAGE = 100;
             final int GOOD_OUTCOME_EQUAL_OR_LOWER = 50;
 
-            int outcomeDecider = random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE+1);
-            if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER){
+            if (chanceChecker(GOOD_OUTCOME_EQUAL_OR_LOWER)){
                 //EVENT LOG
                 addEventLog("- Event " + round + ": Genstart af motor lykkedes");
                 return true;
@@ -359,15 +353,12 @@ public class RescueMissionService {
 
         }
         if (choice == WITH_PARTS) {
-            final int LOWEST_PERCENTAGE = 1;
-            final int HIGHEST_PERCENTAGE = 100;
             final int GOOD_OUTCOME_EQUAL_OR_LOWER = 80;
             final int SPARE_PARTS_COST = 2;
 
             if (ship.getSpareParts() - SPARE_PARTS_COST >= 0) {
                 ship.spentSpareParts(SPARE_PARTS_COST);
-                int outcomeDecider = random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE + 1);
-                if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER) {
+                if (chanceChecker(GOOD_OUTCOME_EQUAL_OR_LOWER)) {
                     //EVENT LOG
                     addEventLog("- Event " + round + ": Genstart af motor med reservedele lykkedes");
                     return true;
@@ -468,14 +459,12 @@ public class RescueMissionService {
         }
         if (choice == SHIELD_LOOK) {
             final int SHIELD_FUEL_COST = 10;
-            final int SHIELD_LOWEST_PERCENTAGE = 1;
-            final int SHIELD_HIGHEST_PERCENTAGE = 100;
             final int GOOD_OUTCOME_EQUAL_OR_LOWER = 50;
             final int INCREASE_SHIELD_BY = 1;
             ship.useFuel(SHIELD_FUEL_COST);
 
-            int outcomeDecider = random.nextInt(SHIELD_LOWEST_PERCENTAGE,SHIELD_HIGHEST_PERCENTAGE+1);
-            if (outcomeDecider <= GOOD_OUTCOME_EQUAL_OR_LOWER){
+
+            if (chanceChecker(GOOD_OUTCOME_EQUAL_OR_LOWER)){
                 ship.increaseShieldLevelBy(INCREASE_SHIELD_BY);
                 //EVENT LOG
                 addEventLog("- Event " + round + ": Forladt fabrik søg efter shield opgradering, fundet +" + INCREASE_SHIELD_BY + "shield level");
@@ -496,6 +485,16 @@ public class RescueMissionService {
         throw new IllegalArgumentException("Fejl: Der er gået noget ukendt galt i logikken");
         //LOGGER
     }
+
+
+    private boolean chanceChecker(int equalAndBelowIsSuccess){
+        final int LOWEST_PERCENTAGE = 1;
+        final int HIGHEST_PERCENTAGE = 100;
+        // +1 in order for 100 to be part of it
+        return equalAndBelowIsSuccess <= random.nextInt(LOWEST_PERCENTAGE, HIGHEST_PERCENTAGE+1);
+    }
+
+
 
 
 }
